@@ -140,4 +140,4 @@ de verdad necesita permisos de administrador **no se instala solo**, y te dice e
 Machinograph es software libre con licencia **MIT**. El catálogo de limpieza está portado de
 [Kudu](https://github.com/adventdevinc/kudu) (MIT), y las mediciones y descargas se apoyan en
 [llmfit](https://github.com/AlexsJones/llmfit) y [llama.cpp](https://github.com/ggml-org/llama.cpp)
-(ambos MIT). Los detalles, en [LICENSE](LICENSE).
+(ambos MIT): el detalle de cada atribución está en [CREDITS.md](CREDITS.md).
