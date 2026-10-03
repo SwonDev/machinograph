@@ -66,10 +66,23 @@ pub fn ejecutar(
 
     // Los dos tubos se sacan del hijo ANTES de lanzar los hilos (si no, el hijo
     // viajaría con el primero y ya no se podría esperar), y se leen a la vez.
+    //
+    // POR QUÉ SE DEVUELVE POR UN CANAL Y NO POR EL `JoinHandle`: un proceso puede
+    // MORIR y dejar hijos suyos vivos con las tuberías abiertas (pasa de verdad:
+    // `sh -c "sleep 30"` con el `sh` de Ubuntu, que no hace `exec`, deja el `sleep`
+    // huérfano). Al matar al hijo, el hilo que lee seguiría esperando el fin del
+    //tubo hasta que terminara el HUÉRFANO, así que el tope no cortaba nada. Con un
+    // canal se espera lo que dice el margen y se devuelve lo leído hasta ahí.
+    let (tx_salida, rx_salida) = std::sync::mpsc::channel();
+    let (tx_error, rx_error) = std::sync::mpsc::channel();
     let salida_t = hijo.stdout.take();
     let error_t = hijo.stderr.take();
-    let h_salida = std::thread::spawn(move || leer_todo(salida_t));
-    let h_error = std::thread::spawn(move || leer_todo(error_t));
+    std::thread::spawn(move || {
+        let _ = tx_salida.send(leer_todo(salida_t));
+    });
+    std::thread::spawn(move || {
+        let _ = tx_error.send(leer_todo(error_t));
+    });
 
     let t0 = Instant::now();
     let mut agotado = false;
@@ -107,8 +120,8 @@ pub fn ejecutar(
         }
     };
 
-    let stdout = h_salida.join().unwrap_or_default();
-    let stderr = h_error.join().unwrap_or_default();
+    let stdout = rx_salida.recv_timeout(MARGEN_MUERTE).unwrap_or_default();
+    let stderr = rx_error.recv_timeout(MARGEN_MUERTE).unwrap_or_default();
     let segundos = limite.as_secs().max(1);
     if agotado {
         return Err(format!("{programa} no responde: se ha terminado tras {segundos} s"));
@@ -178,6 +191,32 @@ mod pruebas {
         assert!(
             t0.elapsed() < Duration::from_secs(25),
             "no puede esperar los 30 s del proceso"
+        );
+    }
+
+    /// REGRESIÓN del fallo que destapó el CI: un hijo que muere y deja un NIETO
+    /// vivo con la tubería abierta (el `sh` de Ubuntu no hace `exec`, así que
+    /// `sleep` queda huérfano). Antes, el tope mataba al hijo, pero la lectura del
+    /// tubo seguía esperando al huérfano: con un límite de 1 s, la llamada tardaba
+    /// los 30 s del `sleep`.
+    ///
+    /// Es de Unix porque usa el `&` del shell para dejar un hijo en segundo plano;
+    /// el caso de Windows (un proceso que no muere) lo cubre la prueba de arriba.
+    #[cfg(unix)]
+    #[test]
+    fn un_huerfano_con_la_tuberia_abierta_no_bloquea_la_lectura() {
+        let t0 = Instant::now();
+        let r = ejecutar(
+            "/bin/sh",
+            &["-c".to_string(), "sleep 30 & sleep 30".to_string()],
+            &[],
+            Duration::from_secs(1),
+        );
+        assert!(r.is_err(), "con tope de 1 s tiene que dar error");
+        assert!(
+            t0.elapsed() < Duration::from_secs(6),
+            "no puede esperar al huérfano: tardó {:?}",
+            t0.elapsed()
         );
     }
 
