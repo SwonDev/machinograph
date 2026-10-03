@@ -1,0 +1,178 @@
+@import "tailwindcss";
+
+/* ─────────────────────────────────────────────────────────────────────────────
+   Tokens de diseño de Machinograph.
+   Concepto: panel de control denso, oscuro y tranquilo. La pantalla está para
+   leer números, así que el color se reserva para el ESTADO (ok / atención /
+   problema) y para un único acento. Nada de degradados ni sombras decorativas:
+   jerarquía por capas de fondo, bordes de 1px y contraste tipográfico.
+
+   Contraste: medido con la fórmula WCAG (no a ojo) contra los TRES fondos
+   posibles (bg 17.5%, surface 21.5%, raised 25.5%). Todo el texto pasa AA
+   (4.5:1); el caso más justo es --color-fg-faint, con 4.88:1 sobre raised.
+   ───────────────────────────────────────────────────────────────────────────── */
+
+@theme {
+  /* Capas de fondo, de más atrás a más delante */
+  --color-bg: oklch(17.5% 0.012 255);
+  --color-surface: oklch(21.5% 0.014 255);
+  --color-raised: oklch(25.5% 0.016 255);
+  --color-line: oklch(31% 0.016 255);
+  --color-line-soft: oklch(26.5% 0.014 255);
+
+  /* Texto */
+  --color-fg: oklch(94% 0.005 255);
+  --color-fg-muted: oklch(74% 0.012 255);
+  /* 58% daba 4.09:1 sobre surface y 3.68:1 sobre raised: no llegaba a AA. */
+  --color-fg-faint: oklch(65% 0.012 255);
+
+  /* Acento único: cian de instrumentación */
+  --color-accent: oklch(78% 0.13 205);
+  --color-accent-dim: oklch(45% 0.08 205);
+  --color-accent-soft: oklch(28% 0.05 205);
+
+  /* Estado (todos AA sobre --color-bg) */
+  --color-ok: oklch(78% 0.15 155);
+  --color-warn: oklch(82% 0.14 85);
+  --color-bad: oklch(72% 0.17 25);
+  /* Igual que fg-faint: al 62% se quedaba en 4.33:1 sobre raised. */
+  --color-idle: oklch(65% 0.02 255);
+
+  /* Fuentes COMPROBADAS en el equipo (Inter y JetBrains Mono no están
+     instaladas: declararlas era pedir algo que no existe y el webview caía a
+     Noto Sans sin avisar). Fira Code sí está y es la recomendada para paneles
+     técnicos; para el texto, Noto Sans es la del sistema y no falla. */
+  --font-sans: "Noto Sans", "Fira Sans", system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+  --font-mono: "Fira Code", "Noto Sans Mono", ui-monospace, "SF Mono", Menlo, monospace;
+
+  --radius-card: 10px;
+
+  /* ── Puntos de ruptura en PÍXELES, no en `rem` ───────────────────────────
+     NO es una preferencia de estilo: es un defecto medido en la app real.
+
+     Tailwind v4 emite sus puntos de ruptura en `rem` (`@media (min-width:64rem)`),
+     y **WebKitGTK evalúa el `rem` de una media query contra SU fuente por
+     defecto, no contra la del documento**. Medido en esta máquina con la app
+     release abierta:
+
+         w=1281  rem(documento)=16px
+         (min-width:64rem)  -> false     <- ¡con 1281 de ancho!
+         (min-width:1024px) -> true
+         (min-width:1280px) -> true
+
+     O sea que `lg:` (y `xl:`, y `2xl:`) NO se aplicaban nunca y la interfaz se
+     quedaba siempre en la disposición estrecha: rejillas de dos columnas donde
+     cabían cinco, tablas apretadas y todo más alto de lo que dice el diseño.
+     Con los puntos en píxeles, la media query es la misma en cualquier motor.
+     Comprobado en los dos niveles: en el arnés (Chromium) y en la ventana real
+     (WebKitGTK).
+
+     Los valores son los de fábrica de Tailwind v4, solo que en `px`. */
+  --breakpoint-sm: 640px;
+  --breakpoint-md: 768px;
+  --breakpoint-lg: 1024px;
+  --breakpoint-xl: 1280px;
+  --breakpoint-2xl: 1536px;
+}
+
+:root {
+  color-scheme: dark;
+  /* Cifras tabulares: en un panel de métricas los números TIENEN que alinearse. */
+  font-variant-numeric: tabular-nums;
+}
+
+html,
+body,
+#root {
+  height: 100%;
+}
+
+body {
+  margin: 0;
+  background: var(--color-bg);
+  color: var(--color-fg);
+  font-family: var(--font-sans);
+  font-size: 14px;
+  line-height: 1.5;
+  -webkit-font-smoothing: antialiased;
+}
+
+/* Accesibilidad: foco siempre visible y consistente (nunca outline: none) */
+:focus-visible {
+  outline: 2px solid var(--color-accent);
+  outline-offset: 2px;
+  border-radius: 4px;
+}
+
+/* Respeta a quien pide menos movimiento */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    transition-duration: 0.01ms !important;
+  }
+}
+
+@layer components {
+  /* Tarjeta base: la unidad de todo el panel */
+  .card {
+    background: var(--color-surface);
+    border: 1px solid var(--color-line-soft);
+    border-radius: var(--radius-card);
+  }
+
+  /* Etiqueta de sección: mayúsculas pequeñas, muy espaciadas, apagada */
+  .label {
+    font-size: 11px;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--color-fg-faint);
+    font-weight: 500;
+  }
+
+  /* Cifra grande: el dato protagonista de un KPI */
+  .metric {
+    font-family: var(--font-mono);
+    font-size: 26px;
+    font-weight: 500;
+    letter-spacing: -0.01em;
+    line-height: 1.1;
+  }
+
+  .mono {
+    font-family: var(--font-mono);
+  }
+
+  /* Barra de progreso fina, sin animación salvo la del valor */
+  .bar {
+    height: 4px;
+    background: var(--color-raised);
+    border-radius: 999px;
+    overflow: hidden;
+  }
+  .bar > span {
+    display: block;
+    height: 100%;
+    background: var(--color-accent);
+    transition: width 240ms ease-out;
+  }
+  .bar.is-warn > span {
+    background: var(--color-warn);
+  }
+  .bar.is-bad > span {
+    background: var(--color-bad);
+  }
+
+  /* Fila de lista: hover sutil, sin desplazamientos */
+  .row {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 10px 12px;
+    border-radius: 8px;
+  }
+  .row:hover {
+    background: var(--color-raised);
+  }
+}

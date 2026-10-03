@@ -1,0 +1,7 @@
+{
+  "$schema": "../gen/schemas/desktop-schema.json",
+  "identifier": "default",
+  "description": "Permisos de la ventana principal. Sin este fichero no se concede NINGÚN permiso, y entonces `listen()` falla con «Command plugin:event|listen not allowed by ACL»: los eventos ai:snapshot, ai:update-line y ai:action no llegan nunca al frontend, así que el panel no se refresca solo y el terminal de actualizaciones no muestra nada. Los comandos propios (los de main.rs) no dependen del ACL; los del núcleo de Tauri, sí.",
+  "windows": ["main"],
+  "permissions": ["core:default"]
+}

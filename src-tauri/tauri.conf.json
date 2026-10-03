@@ -1,0 +1,60 @@
+{
+  "$schema": "https://raw.githubusercontent.com/tauri-apps/tauri/master/packages/tauri/src/assets/tauri.json",
+  "identifier": "dev.machinograph.panel",
+  "productName": "Machinograph",
+  "version": "1.0.0",
+  "mainBinaryName": "machinograph",
+  "app": {
+    "windows": [
+      {
+        "label": "main",
+        "width": 1280,
+        "height": 800,
+        "minWidth": 960,
+        "minHeight": 640,
+        "title": "Machinograph",
+        "resizable": true,
+        "decorations": true,
+        "focus": true,
+        "center": true
+      }
+    ]
+  },
+  "build": {
+    "beforeBuildCommand": "pnpm build",
+    "beforeDevCommand": "pnpm dev",
+    "devUrl": "http://localhost:5173",
+    "frontendDist": "../dist"
+  },
+  "bundle": {
+    "icon": [
+      "icons/32x32.png",
+      "icons/128x128.png",
+      "icons/128x128@2x.png",
+      "icons/icon.icns",
+      "icons/icon.ico"
+    ],
+    "category": "Utility",
+    "shortDescription": "Panel local de hardware y servidores de IA",
+    "longDescription": "Machinograph reúne en una ventana lo que normalmente hay que mirar en cinco sitios: uso de CPU, memoria y GPU, pantallas conectadas, modelos en disco y el estado de los servidores de IA locales (llama-swap, Ollama, vLLM, ComfyUI…), con historial de métricas y de acciones en SQLite.",
+    "windows": {
+      "webviewInstallMode": {
+        "type": "embedBootstrapper"
+      },
+      "nsis": {
+        "languages": ["Spanish"]
+      }
+    },
+    "macOS": {
+      "minimumSystemVersion": "10.15"
+    },
+    "linux": {
+      "deb": {
+        "depends": []
+      },
+      "appimage": {
+        "bundleMediaFramework": false
+      }
+    }
+  }
+}

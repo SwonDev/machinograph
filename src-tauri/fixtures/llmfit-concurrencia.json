@@ -1,0 +1,67 @@
+{
+  "estimate": {
+    "kv_budget_gb": 7.94601407935,
+    "kv_quant": "fp16",
+    "ladder": [
+      {
+        "clamped": false,
+        "effective_context": 4096,
+        "max_sessions": 5,
+        "per_session_kv_gb": 1.5,
+        "requested_context": 4096
+      },
+      {
+        "clamped": false,
+        "effective_context": 8192,
+        "max_sessions": 2,
+        "per_session_kv_gb": 3.0,
+        "requested_context": 8192
+      },
+      {
+        "clamped": false,
+        "effective_context": 16384,
+        "max_sessions": 1,
+        "per_session_kv_gb": 6.0,
+        "requested_context": 16384
+      },
+      {
+        "clamped": false,
+        "effective_context": 32768,
+        "max_sessions": 0,
+        "per_session_kv_gb": 12.0,
+        "requested_context": 32768
+      },
+      {
+        "clamped": false,
+        "effective_context": 65536,
+        "max_sessions": 0,
+        "per_session_kv_gb": 24.0,
+        "requested_context": 65536
+      },
+      {
+        "clamped": false,
+        "effective_context": 131072,
+        "max_sessions": 0,
+        "per_session_kv_gb": 48.0,
+        "requested_context": 131072
+      },
+      {
+        "clamped": true,
+        "effective_context": 131072,
+        "max_sessions": 0,
+        "per_session_kv_gb": 48.0,
+        "requested_context": 262144
+      }
+    ],
+    "native_context": 131072,
+    "per_session_recurrent_gb": 0.0,
+    "pool_gb": 15.984375,
+    "quant": "Q8_0",
+    "weights_resident_gb": 8.03836092065
+  },
+  "fit_level": "Good",
+  "max_context_for_target": null,
+  "model": "sakamakismile/Huihui-gemma-4-12B-it-abliterated-NVFP4A16",
+  "run_mode": "Gpu",
+  "target_users": null
+}

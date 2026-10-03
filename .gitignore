@@ -1,0 +1,54 @@
+# node
+node_modules
+.pnpm
+.pnpm-store
+pnpm-debug.log
+npm-debug.log*
+
+# tauri
+src-tauri/target
+# Los esquemas de permisos los regenera Tauri en cada compilación: versionarlos
+# solo mete ruido en los diffs (y el propio andamiaje de Tauri los ignora).
+src-tauri/gen/schemas
+!src-tauri/.gitkeep
+
+# datos locales
+*.db
+*.db-wal
+*.db-shm
+*.sqlite*
+data/
+
+# artefactos
+dist
+out
+dev
+log
+*.deb
+*.rpm
+*.AppImage
+*.dmg
+*.msi
+*.exe
+
+# secretos (nunca deben entrar al repositorio)
+.env
+.env.*
+*.key
+*.pem
+*.token
+secrets/
+*token*.txt
+
+# sistema y editores
+.DS_Store
+Thumbs.db
+.idea/
+.vscode/
+*.swp
+*~
+
+# estado local del entorno de agentes
+.atl/
+.omp/
+

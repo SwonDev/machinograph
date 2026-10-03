@@ -1,0 +1,113 @@
+name: CI
+
+# POR QUÉ EXISTE: Machinograph dice ser multiplataforma (Linux, macOS y Windows), y aquí
+# solo se puede probar en Linux. Esta matriz es la que comprueba DE VERDAD que el
+# código de los otros dos sistemas compila y que sus pruebas pasan: los catálogos de
+# limpieza de macOS y Windows, los parsers de plists y de WMI, los backends de
+# papelera y de autoarranque… todo eso se compila en su sistema, no solo en Linux.
+#
+# Ojo con el ORDEN: `pnpm build` va ANTES de `cargo test` porque Tauri comprueba en
+# su script de compilación que exista `frontendDist` (el `dist` del frontend).
+
+on:
+  push:
+    branches: ["main", "machinograph"]
+  pull_request:
+
+env:
+  CARGO_TERM_COLOR: always
+
+jobs:
+  pruebas:
+    name: Pruebas en ${{ matrix.os }}
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-22.04, macos-14, windows-2022]
+
+    steps:
+      - uses: actions/checkout@v4
+
+      # Linux sí necesita las bibliotecas de desarrollo de WebKitGTK y GTK para
+      # enlazar (en Bazzite se resuelve con el overlay; aquí, con apt).
+      - name: Dependencias de Linux
+        if: runner.os == 'Linux'
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y libwebkit2gtk-4.1-dev libgtk-3-dev librsvg2-dev \
+            libayatana-appindicator3-dev patchelf
+
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 10
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: pnpm
+
+      - uses: dtolnay/rust-toolchain@stable
+
+      - uses: Swatinem/rust-cache@v2
+        with:
+          workspaces: src-tauri
+
+      - name: Instalar dependencias del frontend
+        run: pnpm install --frozen-lockfile
+
+      - name: Tipos del frontend
+        run: pnpm typecheck
+
+      - name: Compilar el frontend
+        run: pnpm build
+
+      - name: Pruebas del backend (incluye los catálogos de los tres sistemas)
+        run: cargo test --manifest-path src-tauri/Cargo.toml
+
+      - name: Compilar la aplicación
+        run: pnpm exec tauri build --no-bundle
+
+      # El empaquetado de VERDAD (el instalador de cada sistema): es lo que hace
+      # que la app se pueda instalar sin fricción, y lo único que comprueba que
+      # los iconos, las dependencias del paquete y los ajustes por sistema están
+      # bien. Aquí SÍ se puede: el runner de Linux instala las bibliotecas de
+      # desarrollo (libayatana-appindicator3-dev) que el empaquetador necesita y
+      # que en un escritorio normal no están; macOS trae hdiutil y Windows, NSIS.
+      #
+      # OJO: `bundle.active` está en `false` a propósito (para que `pnpm tauri
+      # build` a secas no falle en una máquina sin esas bibliotecas de
+      # desarrollo), así que aquí se piden los paquetes EXPLÍCITAMENTE.
+      - name: Empaquetar el instalador de este sistema
+        shell: bash
+        run: |
+          set -euo pipefail
+          case "${{ runner.os }}" in
+            Linux)   pnpm exec tauri build --bundles deb,appimage ;;
+            macOS)   pnpm exec tauri build --bundles app,dmg ;;
+            Windows) pnpm exec tauri build --bundles nsis ;;
+          esac
+          echo "--- paquetes generados ---"
+          find src-tauri/target/release/bundle -maxdepth 2 -type f \
+            \( -name '*.deb' -o -name '*.AppImage' -o -name '*.dmg' -o -name '*.app' -o -name '*.exe' \) -printf '%f\n' 2>/dev/null || true
+
+      # El modo línea de comandos no abre ventana: es lo que se usa en un script, y
+      # si algún día deja de funcionar en un sistema, se entera aquí.
+      #
+      # Se ejercitan los comandos que tocan la CAPA DE PLATAFORMA (papelera,
+      # exclusiones con SQLite, comprobación de persistencia): son los que en Linux
+      # no pueden probar el código de macOS y Windows, y aquí se ejecutan DE VERDAD
+      # en su sistema. Si uno se rompe en un sistema, sale en este paso.
+      - name: El CLI responde y su JSON se puede leer
+        shell: bash
+        run: |
+          set -euo pipefail
+          cargo run --manifest-path src-tauri/Cargo.toml -- --cli --version
+          cargo run --manifest-path src-tauri/Cargo.toml -- --cli estado --json > estado.json
+          python3 -c "import json;d=json.load(open('estado.json'));assert d['so'] and d['cores']>0;print('CLI ok:', d['so'], d['cores'], 'núcleos')"
+          cargo run --manifest-path src-tauri/Cargo.toml -- --cli exclusiones --json > exclusiones.json
+          python3 -c "import json;d=json.load(open('exclusiones.json'));assert isinstance(d,list);print('exclusiones ok:', len(d))"
+          cargo run --manifest-path src-tauri/Cargo.toml -- --cli seguridad --json > seguridad.json
+          python3 -c "import json;d=json.load(open('seguridad.json'));assert d and all('veredicto' in h for h in d);print('seguridad ok:', len(d), 'comprobaciones')"
+          cargo run --manifest-path src-tauri/Cargo.toml -- --cli papelera --json > papelera.json
+          python3 -c "import json;print('papelera ok:', json.load(open('papelera.json')) is not None)"

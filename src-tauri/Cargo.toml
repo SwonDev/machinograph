@@ -1,0 +1,39 @@
+[package]
+name = "machinograph"
+version = "1.0.0"
+edition = "2021"
+
+[dependencies]
+serde = { version = "1", features = ["derive"] }
+serde_json = "1"
+tokio = { version = "1", features = ["rt-multi-thread", "macros", "time", "process", "net", "fs", "io-util"] }
+reqwest = { version = "0.12", features = ["json", "rustls-tls", "blocking", "stream"] }
+dirs = "5"
+chrono = { version = "0.4", features = ["serde"] }
+thiserror = "2"
+anyhow = "1"
+shlex = "1"
+glob = "0.3"
+rusqlite = { version = "0.40", features = ["bundled"] }
+# La puerta de enlace de uso (gateway.rs): servidor propio que reenvía al motor y
+# cuenta lo que pasa. `axum` y no un servidor a mano porque esto queda EN MEDIO de
+# las peticiones del usuario: un fallo aquí no da un dato mal, corta el trabajo.
+axum = "0.8"
+futures-util = "0.3"
+
+tauri = { version = "2", features = ["tray-icon", "image-png", "linux-libxdo"] }
+sysinfo = "0.39.6"
+trash = "5.2.9"
+blake3 = "1.8.7"
+parking_lot = "0.12.5"
+
+[build-dependencies]
+tauri-build = { version = "2", features = [] }
+
+[profile.release]
+lto = "fat"
+codegen-units = 1
+panic = "abort"
+
+[target."cfg(windows)".dependencies]
+winreg = "0.56.0"

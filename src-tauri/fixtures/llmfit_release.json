@@ -1,0 +1,113 @@
+{
+  "tag_name": "v1.1.16",
+  "assets": [
+    {
+      "name": "llmfit-v1.1.16-aarch64-apple-darwin.tar.gz",
+      "browser_download_url": "https://github.com/AlexsJones/llmfit/releases/download/v1.1.16/llmfit-v1.1.16-aarch64-apple-darwin.tar.gz",
+      "size": 6368544,
+      "digest": "sha256:e5a558de2af332aa2a75547086c8983fc2f43c7c9a966fcc20d9ce4108ec6886"
+    },
+    {
+      "name": "llmfit-v1.1.16-aarch64-apple-darwin.tar.gz.sha256",
+      "browser_download_url": "https://github.com/AlexsJones/llmfit/releases/download/v1.1.16/llmfit-v1.1.16-aarch64-apple-darwin.tar.gz.sha256",
+      "size": 109,
+      "digest": "sha256:75f8c26fd72d13dd3a7fceac9d320e7ed023aeab2795bfc607e0cca0b9352ca8"
+    },
+    {
+      "name": "llmfit-v1.1.16-aarch64-pc-windows-msvc.zip",
+      "browser_download_url": "https://github.com/AlexsJones/llmfit/releases/download/v1.1.16/llmfit-v1.1.16-aarch64-pc-windows-msvc.zip",
+      "size": 5552657,
+      "digest": "sha256:eea24b1c7ae94add6b63f31c5e3ae1d9ee76a869e735d3c7ad6b15c615b13973"
+    },
+    {
+      "name": "llmfit-v1.1.16-aarch64-pc-windows-msvc.zip.sha256",
+      "browser_download_url": "https://github.com/AlexsJones/llmfit/releases/download/v1.1.16/llmfit-v1.1.16-aarch64-pc-windows-msvc.zip.sha256",
+      "size": 110,
+      "digest": "sha256:e0a5dec36a46e1921472f0e324ce92edeff1657ee24d484c9ef57db81cc6b628"
+    },
+    {
+      "name": "llmfit-v1.1.16-aarch64-unknown-linux-gnu.tar.gz",
+      "browser_download_url": "https://github.com/AlexsJones/llmfit/releases/download/v1.1.16/llmfit-v1.1.16-aarch64-unknown-linux-gnu.tar.gz",
+      "size": 6879302,
+      "digest": "sha256:87d1fd489cd90d4e28e4421bd9a9411d89d4f1ee2526216db0207df4ba7152ff"
+    },
+    {
+      "name": "llmfit-v1.1.16-aarch64-unknown-linux-gnu.tar.gz.sha256",
+      "browser_download_url": "https://github.com/AlexsJones/llmfit/releases/download/v1.1.16/llmfit-v1.1.16-aarch64-unknown-linux-gnu.tar.gz.sha256",
+      "size": 114,
+      "digest": "sha256:4f8f3f54672992241afe80598ec65d68c97c3a761e16e9a5d4229b2632641501"
+    },
+    {
+      "name": "llmfit-v1.1.16-aarch64-unknown-linux-musl.tar.gz",
+      "browser_download_url": "https://github.com/AlexsJones/llmfit/releases/download/v1.1.16/llmfit-v1.1.16-aarch64-unknown-linux-musl.tar.gz",
+      "size": 6986678,
+      "digest": "sha256:36c8fdd82e329733633f6236e174961b51beaa3f9d2f4b5ada1d43a4a2dd93cc"
+    },
+    {
+      "name": "llmfit-v1.1.16-aarch64-unknown-linux-musl.tar.gz.sha256",
+      "browser_download_url": "https://github.com/AlexsJones/llmfit/releases/download/v1.1.16/llmfit-v1.1.16-aarch64-unknown-linux-musl.tar.gz.sha256",
+      "size": 115,
+      "digest": "sha256:ce5d0b968bcf48fe9c3edf6c5f6f422c53a99e5e9042ceceb2d1a436500cc7f3"
+    },
+    {
+      "name": "llmfit-v1.1.16-riscv64gc-unknown-linux-gnu.tar.gz",
+      "browser_download_url": "https://github.com/AlexsJones/llmfit/releases/download/v1.1.16/llmfit-v1.1.16-riscv64gc-unknown-linux-gnu.tar.gz",
+      "size": 6976056,
+      "digest": "sha256:a977a764d7574966be3f445b89220efaae43fd0a8a6e213596d00d53c0cc70b7"
+    },
+    {
+      "name": "llmfit-v1.1.16-riscv64gc-unknown-linux-gnu.tar.gz.sha256",
+      "browser_download_url": "https://github.com/AlexsJones/llmfit/releases/download/v1.1.16/llmfit-v1.1.16-riscv64gc-unknown-linux-gnu.tar.gz.sha256",
+      "size": 116,
+      "digest": "sha256:e359d14ae16f6d40be2dfd0fe94dae61f64990c8cc1faae05950230c59d125a3"
+    },
+    {
+      "name": "llmfit-v1.1.16-x86_64-apple-darwin.tar.gz",
+      "browser_download_url": "https://github.com/AlexsJones/llmfit/releases/download/v1.1.16/llmfit-v1.1.16-x86_64-apple-darwin.tar.gz",
+      "size": 6498159,
+      "digest": "sha256:1face5fa683c84b65ecde3c9ba7cb8eb895ec31f0819a3d29861e33312467627"
+    },
+    {
+      "name": "llmfit-v1.1.16-x86_64-apple-darwin.tar.gz.sha256",
+      "browser_download_url": "https://github.com/AlexsJones/llmfit/releases/download/v1.1.16/llmfit-v1.1.16-x86_64-apple-darwin.tar.gz.sha256",
+      "size": 108,
+      "digest": "sha256:9e9ade93f91ccd7ce92ff7aa79ddc40d9f429dcf29011f8fb5c1b31c850024ce"
+    },
+    {
+      "name": "llmfit-v1.1.16-x86_64-pc-windows-msvc.zip",
+      "browser_download_url": "https://github.com/AlexsJones/llmfit/releases/download/v1.1.16/llmfit-v1.1.16-x86_64-pc-windows-msvc.zip",
+      "size": 5847025,
+      "digest": "sha256:bd95bc78e65a15f4d7b62431c082e0d55c9505739f63f6fdf6f9d69605c270ba"
+    },
+    {
+      "name": "llmfit-v1.1.16-x86_64-pc-windows-msvc.zip.sha256",
+      "browser_download_url": "https://github.com/AlexsJones/llmfit/releases/download/v1.1.16/llmfit-v1.1.16-x86_64-pc-windows-msvc.zip.sha256",
+      "size": 109,
+      "digest": "sha256:6829d699efa1e2401284dfc32ebef1a43f32b18ed7aaca086327de82182d9348"
+    },
+    {
+      "name": "llmfit-v1.1.16-x86_64-unknown-linux-gnu.tar.gz",
+      "browser_download_url": "https://github.com/AlexsJones/llmfit/releases/download/v1.1.16/llmfit-v1.1.16-x86_64-unknown-linux-gnu.tar.gz",
+      "size": 6958022,
+      "digest": "sha256:27fad93d5e579156e4d87609e1bdef51675342cef3da111ef0f58e1ec10be7f1"
+    },
+    {
+      "name": "llmfit-v1.1.16-x86_64-unknown-linux-gnu.tar.gz.sha256",
+      "browser_download_url": "https://github.com/AlexsJones/llmfit/releases/download/v1.1.16/llmfit-v1.1.16-x86_64-unknown-linux-gnu.tar.gz.sha256",
+      "size": 113,
+      "digest": "sha256:9a05160e888336d7fd62889656df4b75d385a22507799fd85b9d28ad2cf6b73f"
+    },
+    {
+      "name": "llmfit-v1.1.16-x86_64-unknown-linux-musl.tar.gz",
+      "browser_download_url": "https://github.com/AlexsJones/llmfit/releases/download/v1.1.16/llmfit-v1.1.16-x86_64-unknown-linux-musl.tar.gz",
+      "size": 7235102,
+      "digest": "sha256:9c974f97ac72371d61044eb22ddabff27e9393f681f1c141dbe467699fe3bc48"
+    },
+    {
+      "name": "llmfit-v1.1.16-x86_64-unknown-linux-musl.tar.gz.sha256",
+      "browser_download_url": "https://github.com/AlexsJones/llmfit/releases/download/v1.1.16/llmfit-v1.1.16-x86_64-unknown-linux-musl.tar.gz.sha256",
+      "size": 114,
+      "digest": "sha256:4d6ad07440fee489894487bfeaa7546cfed5246b6f05bf63fa381e25fa4bc391"
+    }
+  ]
+}

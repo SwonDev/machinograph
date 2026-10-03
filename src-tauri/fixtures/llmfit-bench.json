@@ -1,0 +1,31 @@
+{
+  "result": {
+    "model": "modelo-8b",
+    "provider": "llamacpp",
+    "runs": [
+      {
+        "output_tokens": 46,
+        "prompt_tokens": 24,
+        "total_ms": 338.741201,
+        "tps": 135.7968852451462,
+        "ttft_ms": null
+      },
+      {
+        "output_tokens": 280,
+        "prompt_tokens": 30,
+        "total_ms": 2058.7174130000003,
+        "tps": 136.00701010828823,
+        "ttft_ms": null
+      }
+    ],
+    "summary": {
+      "avg_output_tokens": 163.0,
+      "avg_total_ms": 1198.729307,
+      "avg_tps": 135.9019476767172,
+      "avg_ttft_ms": null,
+      "max_tps": 136.00701010828823,
+      "min_tps": 135.7968852451462,
+      "num_runs": 2
+    }
+  }
+}

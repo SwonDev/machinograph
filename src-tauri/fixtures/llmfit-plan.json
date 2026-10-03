@@ -1,0 +1,145 @@
+{
+  "estimate_notice": "Estimate-based output using current llmfit fit/speed heuristics; not an exact benchmark.",
+  "model_name": "sakamakismile/Huihui-gemma-4-12B-it-abliterated-NVFP4A16",
+  "provider": "sakamakismile",
+  "context": 32768,
+  "quantization": "Q4_K_M",
+  "disk_size_gb": 4.16404698474,
+  "kv_quant": "fp16",
+  "target_tps": null,
+  "minimum": {
+    "vram_gb": 16.66404698474,
+    "ram_gb": 8.0,
+    "cpu_cores": 4
+  },
+  "recommended": {
+    "vram_gb": 19.996856381688,
+    "ram_gb": 12.0,
+    "cpu_cores": 8
+  },
+  "run_paths": [
+    {
+      "path": "gpu",
+      "feasible": true,
+      "minimum": {
+        "vram_gb": 16.66404698474,
+        "ram_gb": 8.0,
+        "cpu_cores": 4
+      },
+      "recommended": {
+        "vram_gb": 19.996856381688,
+        "ram_gb": 12.0,
+        "cpu_cores": 8
+      },
+      "estimated_tps": 78.44676133509003,
+      "fit_level": "TooTight",
+      "notes": [
+        "Graded against 14.6 GB of VRAM currently free, not total capacity",
+        "Estimated from quant/context memory and fit headroom thresholds"
+      ]
+    },
+    {
+      "path": "cpu_offload",
+      "feasible": true,
+      "minimum": {
+        "vram_gb": 2.0,
+        "ram_gb": 16.66404698474,
+        "cpu_cores": 4
+      },
+      "recommended": {
+        "vram_gb": 4.0,
+        "ram_gb": 19.996856381688,
+        "cpu_cores": 8
+      },
+      "estimated_tps": 39.223380667545015,
+      "fit_level": "Good",
+      "notes": [
+        "RAM is the primary memory pool for CPU offload"
+      ]
+    },
+    {
+      "path": "cpu_only",
+      "feasible": true,
+      "minimum": {
+        "vram_gb": null,
+        "ram_gb": 16.66404698474,
+        "cpu_cores": 4
+      },
+      "recommended": {
+        "vram_gb": null,
+        "ram_gb": 19.996856381688,
+        "cpu_cores": 8
+      },
+      "estimated_tps": 3.363794897447485,
+      "fit_level": "Marginal",
+      "notes": [
+        "CPU-only fit is always capped at Marginal in current heuristics"
+      ]
+    }
+  ],
+  "current": {
+    "fit_level": "Good",
+    "run_mode": "CpuOffload",
+    "estimated_tps": 39.223380667545015
+  },
+  "upgrade_deltas": [
+    {
+      "resource": "vram_gb",
+      "add_gb": 0.6796719847400006,
+      "add_cores": null,
+      "target_fit": "Good",
+      "path": "gpu",
+      "description": "+0.7 GB VRAM -> Good"
+    },
+    {
+      "resource": "vram_gb",
+      "add_gb": 4.012481381688001,
+      "add_cores": null,
+      "target_fit": "Perfect",
+      "path": "gpu",
+      "description": "+4.0 GB VRAM -> Perfect"
+    }
+  ],
+  "kv_alternatives": [
+    {
+      "kv_quant": "fp16",
+      "memory_required_gb": 16.66404698474,
+      "kv_cache_gb": 12.0,
+      "savings_fraction": 0.0,
+      "note": null,
+      "supported": true
+    },
+    {
+      "kv_quant": "fp8",
+      "memory_required_gb": 10.66404698474,
+      "kv_cache_gb": 6.0,
+      "savings_fraction": 0.5,
+      "note": "vLLM and llama.cpp builds with fp8 KV support",
+      "supported": true
+    },
+    {
+      "kv_quant": "q8_0",
+      "memory_required_gb": 10.66404698474,
+      "kv_cache_gb": 6.0,
+      "savings_fraction": 0.5,
+      "note": "llama.cpp --cache-type-k q8_0 --cache-type-v q8_0",
+      "supported": true
+    },
+    {
+      "kv_quant": "q4_0",
+      "memory_required_gb": 7.66404698474,
+      "kv_cache_gb": 3.0,
+      "savings_fraction": 0.75,
+      "note": "llama.cpp --cache-type-k q4_0 --cache-type-v q4_0 (quality drop)",
+      "supported": true
+    },
+    {
+      "kv_quant": "tq",
+      "memory_required_gb": 6.70404698474,
+      "kv_cache_gb": 2.04,
+      "savings_fraction": 0.83,
+      "note": "Experimental: not in upstream vLLM, see 0xSero/turboquant; requires vLLM + CUDA",
+      "supported": false
+    }
+  ]
+}

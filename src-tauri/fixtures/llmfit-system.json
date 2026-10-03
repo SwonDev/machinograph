@@ -1,0 +1,32 @@
+{
+ "providers": {
+  "llama.cpp": {
+   "available": true,
+   "detection_hint": "",
+   "llama_cli_path": "/home/usuario/.local/bin/llama-cli",
+   "llama_server_path": "/home/usuario/.local/bin/llama-server",
+   "server_running": false
+  }
+ },
+ "system": {
+  "available_ram_gb": 22.97,
+  "backend": "Vulkan",
+  "cpu_cores": 16,
+  "cpu_name": "AMD Ryzen 7 5800X 8-Core Processor",
+  "gpu_count": 1,
+  "gpu_name": "Radeon RX 6800/6800 XT / 6900 XT",
+  "gpu_vram_gb": 15.98,
+  "gpus": [
+   {
+    "backend": "Vulkan",
+    "count": 1,
+    "name": "Radeon RX 6800/6800 XT / 6900 XT",
+    "unified_memory": false,
+    "vram_gb": 15.98
+   }
+  ],
+  "has_gpu": true,
+  "total_ram_gb": 31.25,
+  "unified_memory": false
+ }
+}

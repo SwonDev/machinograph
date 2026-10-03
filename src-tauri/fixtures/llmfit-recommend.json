@@ -1,0 +1,168 @@
+{
+ "models": [
+  {
+   "best_quant": null,
+   "capabilities": [
+    "Vision"
+   ],
+   "capability_ids": [
+    "vision"
+   ],
+   "category": "Multimodal",
+   "context_length": 131072,
+   "disk_size_gb": 7.54,
+   "effective_context_length": 8192,
+   "estimate_basis": {
+    "assumed_context": 8192,
+    "ddr_bandwidth_gbps": null,
+    "efficiency": 0.55,
+    "gpu_bandwidth_gbps": 512.0,
+    "local_calibration": null,
+    "method": "gpu_bandwidth_roofline"
+   },
+   "estimate_confidence": "estimated",
+   "estimate_confidence_label": "estimated",
+   "estimated_tps": 39.2,
+   "fit_label": "Good",
+   "fit_level": "Good",
+   "gguf_sources": [],
+   "installed": false,
+   "is_moe": false,
+   "license": "gemma",
+   "measured_tps": null,
+   "memory_available_gb": 15.98,
+   "memory_required_gb": 11.04,
+   "moe_offloaded_gb": null,
+   "name": "sakamakismile/Huihui-gemma-4-12B-it-abliterated-NVFP4A16",
+   "notes": [
+    "Context capped at 8192 tokens for estimation (model supports up to 131072; use --max-context to override)",
+    "GPU: model loaded into VRAM",
+    "Best quantization for hardware: Q8_0 (model default: Q4_K_M)",
+    "Baseline estimated speed: 39.2 tok/s",
+    "best_quant cleared: 'sakamakismile/Huihui-gemma-4-12B-it-abliterated-NVFP4A16' is a native NVFP4/MXFP4 repo, so the GGUF quant label 'Q8_0' does not apply"
+   ],
+   "ollama_name": null,
+   "parameter_count": "7.2B",
+   "params_b": 7.18,
+   "prefill_tps": null,
+   "provider": "sakamakismile",
+   "release_date": "2026-06-07",
+   "run_mode": "GPU",
+   "run_mode_label": "GPU",
+   "runtime": "llama.cpp",
+   "runtime_label": "llama.cpp",
+   "score": 95.9,
+   "score_components": {
+    "context": 100.0,
+    "fit": 100.0,
+    "quality": 92.5,
+    "speed": 98.1
+   },
+   "supports_tp": [
+    1,
+    2,
+    4,
+    8
+   ],
+   "total_memory_gb": 11.04,
+   "ttft_ms": null,
+   "usable_context": 21697,
+   "use_case": "Multimodal, vision and text",
+   "utilization_pct": 69.1,
+   "verify_command": "llama-bench -m <path-to-Q8_0-gguf> -ngl 99 -p 512 -n 128"
+  },
+  {
+   "best_quant": null,
+   "capabilities": [
+    "Tool Use"
+   ],
+   "capability_ids": [
+    "tool_use"
+   ],
+   "category": "Reasoning",
+   "context_length": 262144,
+   "disk_size_gb": 12.85,
+   "effective_context_length": 8192,
+   "estimate_basis": {
+    "assumed_context": 8192,
+    "ddr_bandwidth_gbps": null,
+    "efficiency": 0.55,
+    "gpu_bandwidth_gbps": 512.0,
+    "local_calibration": null,
+    "method": "gpu_bandwidth_roofline"
+   },
+   "estimate_confidence": "estimated",
+   "estimate_confidence_label": "estimated",
+   "estimated_tps": 25.4,
+   "fit_label": "Marginal",
+   "fit_level": "Marginal",
+   "gguf_sources": [],
+   "installed": false,
+   "is_moe": false,
+   "license": "apache-2.0",
+   "measured_tps": null,
+   "memory_available_gb": 15.98,
+   "memory_required_gb": 13.85,
+   "moe_offloaded_gb": null,
+   "name": "mconcat/Qwen3.5-27B-Claude-4.6-Opus-Reasoning-Distilled-v2-NVFP4",
+   "notes": [
+    "Context capped at 8192 tokens for estimation (model supports up to 262144; use --max-context to override)",
+    "GPU: model loaded into VRAM",
+    "Baseline estimated speed: 25.4 tok/s",
+    "best_quant cleared: 'mconcat/Qwen3.5-27B-Claude-4.6-Opus-Reasoning-Distilled-v2-NVFP4' is a native NVFP4/MXFP4 repo, so the GGUF quant label 'Q4_K_M' does not apply"
+   ],
+   "ollama_name": null,
+   "parameter_count": "22.1B",
+   "params_b": 22.15,
+   "prefill_tps": null,
+   "provider": "mconcat",
+   "release_date": "2026-03-26",
+   "run_mode": "GPU",
+   "run_mode_label": "GPU",
+   "runtime": "llama.cpp",
+   "runtime_label": "llama.cpp",
+   "score": 95.5,
+   "score_components": {
+    "context": 100.0,
+    "fit": 70.8,
+    "quality": 99.8,
+    "speed": 100.0
+   },
+   "supports_tp": [
+    1,
+    2,
+    4
+   ],
+   "total_memory_gb": 13.85,
+   "ttft_ms": null,
+   "usable_context": 43240,
+   "use_case": "Advanced reasoning, chain-of-thought",
+   "utilization_pct": 86.6,
+   "verify_command": "llama-bench -m <path-to-Q4_K_M-gguf> -ngl 99 -p 512 -n 128"
+  }
+ ],
+ "system": {
+  "available_ram_gb": 22.98,
+  "backend": "Vulkan",
+  "cpu_cores": 16,
+  "cpu_name": "AMD Ryzen 7 5800X 8-Core Processor",
+  "gpu_available_gb": 14.65,
+  "gpu_count": 1,
+  "gpu_name": "Radeon RX 6800/6800 XT / 6900 XT",
+  "gpu_vram_gb": 15.98,
+  "gpus": [
+   {
+    "backend": "Vulkan",
+    "count": 1,
+    "free_vram_gb": 14.65,
+    "memory_bandwidth_gbps": 512.0,
+    "name": "Radeon RX 6800/6800 XT / 6900 XT",
+    "unified_memory": false,
+    "vram_gb": 15.98
+   }
+  ],
+  "has_gpu": true,
+  "total_ram_gb": 31.25,
+  "unified_memory": false
+ }
+}

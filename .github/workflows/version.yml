@@ -1,0 +1,103 @@
+name: Versión
+
+# POR QUÉ EXISTE: publicar los instaladores de los TRES sistemas de una vez y sin
+# hacerlo a mano. Se dispara al empujar una etiqueta (`v1.0.0`) o a mano desde la
+# pestaña de acciones, y deja una «release» con:
+#
+#   Linux   -> .deb y .AppImage
+#   macOS   -> .app y .dmg (UNIVERSAL: Apple Silicon e Intel en el mismo paquete)
+#   Windows -> .exe (instalador NSIS)
+#
+# OJO CON LO QUE NO HACE: no firma los paquetes. Firmar de verdad exige un
+# certificado de Apple y otro de Windows que cuestan dinero, así que los
+# instaladores salen SIN FIRMAR y el README lo dice en vez de callarlo. Eso sí,
+# cada release explica cómo saltarse el aviso del sistema la primera vez.
+
+on:
+  push:
+    tags: ["v*"]
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  publicar:
+    name: Publicar en ${{ matrix.os }}
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - os: ubuntu-22.04
+            bundles: deb,appimage
+            args: ""
+          - os: macos-14
+            bundles: app,dmg
+            # Universal: el mismo .dmg sirve para Apple Silicon y para Intel.
+            args: --target universal-apple-darwin
+          - os: windows-2022
+            bundles: nsis
+            args: ""
+
+    steps:
+      - uses: actions/checkout@v4
+
+      # Linux necesita las bibliotecas de desarrollo para ENLAZAR y para que el
+      # empaquetador reconozca el indicador de la bandeja (si no, el .deb y el
+      # .AppImage no se pueden construir aunque el binario sí).
+      - name: Dependencias de Linux
+        if: runner.os == 'Linux'
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y libwebkit2gtk-4.1-dev libgtk-3-dev librsvg2-dev \
+            libayatana-appindicator3-dev patchelf
+
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 10
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: pnpm
+
+      - uses: dtolnay/rust-toolchain@stable
+        with:
+          targets: ${{ runner.os == 'macOS' && 'aarch64-apple-darwin,x86_64-apple-darwin' || '' }}
+
+      - uses: Swatinem/rust-cache@v2
+        with:
+          workspaces: src-tauri
+
+      - name: Instalar dependencias del frontend
+        run: pnpm install --frozen-lockfile
+
+      - name: Publicar la versión
+        uses: tauri-apps/tauri-action@v0
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          tagName: ${{ github.ref_name }}
+          releaseName: "Machinograph ${{ github.ref_name }}"
+          releaseBody: |
+            Tu equipo y tu IA local, a la vista.
+
+            Descarga el paquete de tu sistema:
+
+            - **Linux**: `.AppImage` (se ejecuta tal cual) o `.deb`
+            - **macOS**: `.dmg` (universal: Apple Silicon e Intel)
+            - **Windows**: `.exe`
+
+            Los paquetes NO están firmados con certificados de pago, así que el
+            sistema puede avisarte la primera vez: en macOS hay que permitir la
+            aplicación en «Seguridad y privacidad», y en Windows puede aparecer el
+            aviso de SmartScreen («Más información» → «Ejecutar de todas formas»).
+            Es la única consecuencia de no pagar un certificado; el programa es el
+            mismo.
+
+            Nada sale de tu equipo: la aplicación no tiene cuentas, ni nube, ni
+            telemetría.
+          releaseDraft: false
+          prerelease: false
+          args: --bundles ${{ matrix.bundles }} ${{ matrix.args }}
