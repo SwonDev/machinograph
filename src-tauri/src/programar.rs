@@ -198,14 +198,51 @@ mod pruebas {
         };
         let r = recetas(&p);
         assert!(!r.is_empty());
-        // El comando que se programa es el CLI, y las categorías van dentro.
+        // La receta de arranque y la vía manual están SIEMPRE, en los tres sistemas;
+        // lo que cambia es el mecanismo (systemd, launchd o el Programador de
+        // tareas), así que su texto se comprueba en su propio sistema.
         let principal = r.iter().find(|x| x.titulo != "¿Que además limpie?").unwrap();
-        assert!(principal.contenido.contains("--cli limpiar --json"), "{}", principal.contenido);
-        assert!(principal.contenido.contains("--categoria apps"), "{}", principal.contenido);
-        // Y se dice cómo se activa, sin escribirlo nosotros.
         assert!(!principal.instrucciones.is_empty());
-        // La vía que SÍ borra se dice explícitamente.
+        assert!(!principal.contenido.is_empty());
+        // La vía que SÍ borra se dice explícitamente, para que nadie programe un
+        // borrado sin saberlo. Esto es común a los tres sistemas.
         let borra = r.iter().find(|x| x.titulo == "¿Que además limpie?").unwrap();
         assert!(borra.contenido.contains("--aplicar"));
+
+        // El comando programado, con las categorías dentro. La prueba afirmaba el
+        // texto de systemd, que solo existe en Linux; en cada sistema se comprueba
+        // su receta. En macOS el LaunchAgent pasa los argumentos uno a uno, así que
+        // no contiene la línea entera.
+        #[cfg(target_os = "linux")]
+        {
+            assert!(
+                principal.contenido.contains("--cli limpiar --json"),
+                "{}",
+                principal.contenido
+            );
+            assert!(principal.contenido.contains("--categoria apps"), "{}", principal.contenido);
+        }
+        #[cfg(target_os = "windows")]
+        {
+            assert!(
+                principal.contenido.contains("--cli limpiar --json"),
+                "{}",
+                principal.contenido
+            );
+            assert!(principal.contenido.contains("--categoria apps"), "{}", principal.contenido);
+        }
+        #[cfg(target_os = "macos")]
+        {
+            assert!(
+                principal.contenido.contains("<string>limpiar</string>"),
+                "{}",
+                principal.contenido
+            );
+            assert!(
+                principal.contenido.contains("<string>--json</string>"),
+                "{}",
+                principal.contenido
+            );
+        }
     }
 }

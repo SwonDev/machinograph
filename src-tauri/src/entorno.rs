@@ -601,22 +601,38 @@ mod pruebas {
     /// de red. Con esto, un nombre inventado no pasa.
     #[test]
     fn las_interfaces_son_interfaces_de_verdad() {
-        let reales: Vec<String> = std::fs::read_dir("/sys/class/net")
-            .map(|d| {
-                d.flatten()
-                    .filter_map(|e| e.file_name().into_string().ok())
-                    .collect()
-            })
-            .unwrap_or_default();
+        // La parte que vale en cualquier sistema: toda interfaz que se devuelva
+        // tiene nombre y una IPv4 de verdad, y ni es el lazo local ni una difusión.
+        // (En un equipo sin interfaces la lista vacía pasa: no hay nada que
+        // afirmar.)
         for i in interfaces() {
-            assert!(
-                reales.contains(&i.nombre),
-                "«{}» no es una interfaz de esta máquina (las que hay: {reales:?})",
-                i.nombre
-            );
-            let ip: std::net::Ipv4Addr = i.ip.parse().unwrap_or_else(|_| panic!("«{}» no es una IP", i.ip));
+            assert!(!i.nombre.is_empty(), "una interfaz sin nombre no es una interfaz");
+            let ip: std::net::Ipv4Addr =
+                i.ip.parse().unwrap_or_else(|_| panic!("«{}» no es una IP", i.ip));
             assert!(!ip.is_loopback(), "el lazo local no sirve para que te alcancen");
             assert!(!ip.is_broadcast(), "una dirección de difusión no es de nadie");
+        }
+        // Y el nombre tiene que existir de verdad en el sistema. La comprobación que
+        // cazó el fallo real (leer los PREFIJOS de /proc/net/fib_trie como si fueran
+        // interfaces) se apoya en `/sys/class/net`, que solo existe en Linux; fuera
+        // de Linux no hay forma de listar las interfaces desde el sistema de
+        // ficheros, así que ahí no se puede hacer.
+        #[cfg(target_os = "linux")]
+        {
+            let reales: Vec<String> = std::fs::read_dir("/sys/class/net")
+                .map(|d| {
+                    d.flatten()
+                        .filter_map(|e| e.file_name().into_string().ok())
+                        .collect()
+                })
+                .unwrap_or_default();
+            for i in interfaces() {
+                assert!(
+                    reales.contains(&i.nombre),
+                    "«{}» no es una interfaz de esta máquina (las que hay: {reales:?})",
+                    i.nombre
+                );
+            }
         }
     }
 
@@ -736,12 +752,25 @@ mod pruebas {
     /// recorre, para que no puedan discrepar.
     #[test]
     fn las_carpetas_son_las_del_inventario() {
+        // ESTRUCTURAL: no se afirma que existan en ESTE equipo (eso depende de dónde
+        // tengas los modelos; en el CI no hay ninguna), sino que la lista es
+        // EXACTAMENTE la del inventario y que cada elemento está bien formado.
+        // Antes exigía que existiera al menos una carpeta, y era roja en cualquier
+        // equipo sin modelos.
         let carpetas = carpetas_modelos();
+        let raices = crate::inventario::raices_publicas();
         assert!(!carpetas.is_empty(), "el inventario mira al menos una carpeta");
-        assert!(
-            carpetas.iter().any(|c| c.existe),
-            "al menos una tiene que existir en este equipo"
-        );
-        assert!(carpetas.iter().all(|c| !c.ruta.is_empty() && !c.familia.is_empty()));
+        assert_eq!(carpetas.len(), raices.len(), "mismas carpetas que el inventario");
+        for (c, (ruta, familia)) in carpetas.iter().zip(raices.iter()) {
+            assert!(!c.ruta.is_empty() && !c.familia.is_empty());
+            assert_eq!(
+                &c.ruta,
+                ruta.to_string_lossy().as_ref(),
+                "la ruta tiene que ser la del inventario"
+            );
+            assert_eq!(&c.familia, familia, "la familia tiene que ser la del inventario");
+            // `existe` tiene que decir la verdad de esta máquina, sea cual sea.
+            assert_eq!(c.existe, ruta.is_dir(), "«{}» dice existir al revés", c.ruta);
+        }
     }
 }

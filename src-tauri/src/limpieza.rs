@@ -1475,10 +1475,25 @@ mod pruebas {
     #[test]
     fn no_intenta_borrar_lo_que_necesita_root() {
         // Lo que necesita root se SALTA con el comando, no se lanza sudo a ciegas.
-        let inf = limpiar(&["dnf".to_string()]).unwrap();
+        // La regla se busca EN EL CATÁLOGO DE ESTE SISTEMA en vez de usar `dnf`,
+        // que solo existe en Linux: en macOS y Windows `limpiar` diría «objetivo
+        // desconocido», que no es lo que aquí se comprueba. Los tres catálogos
+        // tienen reglas de root con su comando.
+        let con_root = catalogo()
+            .iter()
+            .find(|r| r.root)
+            .expect("cada catálogo tiene al menos una regla que necesita root");
+        let inf = limpiar(&[con_root.id.to_string()]).unwrap();
         assert_eq!(inf.bytes, 0);
         assert!(inf.saltados.iter().any(|s| s.contains("root")), "{inf:?}");
-        assert!(inf.saltados.iter().any(|s| s.contains("dnf clean")), "{inf:?}");
+        // Si la regla trae su comando (las de root lo traen), el salto lo enseña
+        // tal cual: es lo que hay que lanzar a mano.
+        if let Some(cmd) = con_root.comando {
+            assert!(
+                inf.saltados.iter().any(|s| s.contains(cmd)),
+                "el salto no enseña el comando «{cmd}»: {inf:?}"
+            );
+        }
         // Un objetivo que no existe es un fallo, y si es el único, es un error.
         let e = limpiar(&["no-existe".to_string()]).unwrap_err();
         assert!(e.contains("desconocido"), "{e}");
@@ -1528,42 +1543,78 @@ mod pruebas {
         assert!(ids.is_empty(), "{ids:?}");
     }
 
-    /// La misma regla, pero contra el catálogo REAL de este sistema (solo lectura:
-    /// escanea y decide, no borra nada). El catálogo de mentira podría no parecerse
-    /// al de verdad; este no puede.
+    /// Un `Objetivo` con lo que declara una regla del catálogo, para poder pasarlo
+    /// por `ids_a_limpiar` sin escanear el disco. `bytes` se pone > 0 a propósito:
+    /// así lo único que puede dejarlo fuera es la marca de huella o de reinicio, que
+    /// es justo lo que se prueba.
+    fn objetivo_de(r: &Regla) -> Objetivo {
+        Objetivo {
+            id: r.id.into(),
+            categoria: r.categoria.into(),
+            subcategoria: r.subcategoria.into(),
+            descripcion: r.descripcion.into(),
+            rutas: r.rutas.iter().map(|s| s.to_string()).collect(),
+            bytes: 100,
+            elementos: 1,
+            recientes: 0,
+            min_dias: r.min_dias,
+            root: r.root,
+            comando: r.comando.map(str::to_string),
+            sin_permiso: false,
+            parcial: false,
+            traza: r.traza,
+            reinicio_cache: r.reinicio_cache,
+        }
+    }
+
+    /// La protección de las huellas y de los reinicios de caché contra el catálogo
+    /// REAL de los tres sistemas (solo lectura: no toca el disco).
+    ///
+    /// Antes escaneaba el equipo (`escanear`) y afirmaba que había huellas medidas,
+    /// así que en un equipo sin esos ficheros (el CI) era roja. Lo que de verdad
+    /// garantiza la protección es el catálogo declarado, que es el mismo en
+    /// cualquier máquina, así que se comprueba eso: en cada catálogo, una huella solo
+    /// entra si se pide `privacidad` y un reinicio de caché no entra nunca.
     #[test]
     fn sobre_el_catalogo_real_ninguna_huella_entra_en_una_limpieza_a_secas() {
-        let e = escanear(None).unwrap();
-        let huellas: Vec<String> = e
-            .objetivos
-            .iter()
-            .filter(|o| o.traza)
-            .map(|o| o.id.clone())
-            .collect();
-        assert!(
-            !huellas.is_empty(),
-            "este catálogo no declara ninguna huella: la prueba no estaría probando nada"
-        );
-        let a_secas = ids_a_limpiar(&e.objetivos, false);
-        for h in &huellas {
-            assert!(!a_secas.contains(h), "se iba a borrar la huella {h} sin pedirla");
+        let mut huellas = 0usize;
+        let mut reinicios = 0usize;
+        for (so, reglas) in todos_los_catalogos() {
+            for r in reglas {
+                if r.traza {
+                    huellas += 1;
+                    // Una huella tiene que estar declarada en `privacidad`: es la
+                    // categoría que hay que pedir a propósito para borrarla.
+                    assert_eq!(
+                        r.categoria, "privacidad",
+                        "{so}: la huella «{}» no está en privacidad",
+                        r.id
+                    );
+                    let o = objetivo_de(r);
+                    assert!(
+                        !ids_a_limpiar(std::slice::from_ref(&o), false).iter().any(|x| x == r.id),
+                        "{so}: la huella «{}» entraría en una limpieza a secas",
+                        r.id
+                    );
+                }
+                // Y ningún REINICIO de caché entra en una limpieza automática, ni
+                // pidiendo la categoría: lo que corre solo no puede dejarte los
+                // shaders sin compilar.
+                if r.reinicio_cache {
+                    reinicios += 1;
+                    let o = objetivo_de(r);
+                    for pide in [false, true] {
+                        assert!(
+                            !ids_a_limpiar(std::slice::from_ref(&o), pide).iter().any(|x| x == r.id),
+                            "{so}: el reinicio de caché «{}» entraría en una limpieza (privacidad={pide})",
+                            r.id
+                        );
+                    }
+                }
+            }
         }
-        // Y pidiéndola por su nombre, la huella que se puede limpiar desde aquí sí
-        // entra: si `huellas` trae 5 y las 5 son limpiables, tiene que haber más.
-        let pidiendo = ids_a_limpiar(&e.objetivos, true);
-        assert!(pidiendo.len() > a_secas.len(), "pedir privacidad no cambió nada");
-        // Y ningún REINICIO de caché entra en una limpieza automática, ni pidiendo
-        // la categoría: lo que corre solo no puede dejarte los shaders sin compilar.
-        let reinicios: Vec<String> = e
-            .objetivos
-            .iter()
-            .filter(|o| o.reinicio_cache)
-            .map(|o| o.id.clone())
-            .collect();
-        assert!(!reinicios.is_empty(), "este catálogo no declara ningún reinicio de caché");
-        for r in &reinicios {
-            assert!(!pidiendo.contains(r), "el reinicio de caché {r} entró en una limpieza");
-        }
+        assert!(huellas > 0, "ningún catálogo declara huellas: la prueba no probaría nada");
+        assert!(reinicios > 0, "ningún catálogo declara ningún reinicio de caché");
     }
 
     #[test]

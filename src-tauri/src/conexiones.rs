@@ -696,20 +696,55 @@ mod pruebas {
 
     #[test]
     fn detecta_los_clientes_de_esta_maquina() {
+        // ESTRUCTURAL a propósito: no se afirma cuántos clientes tienen
+        // configuración en este equipo (eso depende de qué tengas instalado, y en
+        // el CI no hay ninguno). El catálogo de clientes que Machinograph conoce es
+        // fijo —cinco— y lo que se comprueba es que cada uno sale bien formado y
+        // que solo se admite escritura donde el formato está comprobado.
         let c = clientes();
-        // Los cinco que existen en este equipo: gentle-shell, Pi, Claude Code,
-        // mcode y Codex.
+        // Los cinco que Machinograph conoce: gentle-shell, Pi, Claude Code, mcode y
+        // Codex. El campo `existe` dirá cuáles hay de verdad en la máquina.
         assert_eq!(c.len(), 5);
-        // gentle-shell es el que motivó esto: tiene que salir con su home aislado.
+        let ids: std::collections::BTreeSet<&str> = c.iter().map(|x| x.id.as_str()).collect();
+        assert_eq!(ids.len(), c.len(), "hay clientes repetidos");
+        for x in &c {
+            assert!(
+                !x.nombre.is_empty() && !x.config.is_empty(),
+                "{} sin nombre o sin ruta",
+                x.id
+            );
+            assert!(!x.nota.is_empty(), "{} sin nota", x.id);
+        }
+
+        // gentle-shell es el que motivó esto: tiene que salir con su home aislado y
+        // ser de los que se pueden escribir.
         let g = c.iter().find(|x| x.id == "gentle-shell").unwrap();
-        assert!(g.config.contains(".gentle-shell/agent/models.json"));
-        assert!(g.nota.contains("aislado"));
+        // La ruta se compara con `/` normalizado: en Windows `join` la compone con
+        // `\`, así que la prueba no puede depender del separador del sistema.
+        assert!(
+            g.config.replace('\\', "/").contains(".gentle-shell/agent/models.json"),
+            "{}",
+            g.config
+        );
+        // Su nota DEPENDE de si hay fichero, y las dos versiones son correctas: la
+        // del home aislado cuando existe y la de «todavía no hay» cuando no. Antes
+        // se afirmaba que existía (era como estaba el equipo del autor), y eso hacía
+        // la prueba roja en cualquier otro equipo.
+        if g.existe {
+            assert!(g.nota.contains("aislado"), "{}", g.nota);
+        } else {
+            assert!(g.nota.contains("No hay configuración"), "{}", g.nota);
+        }
         assert!(g.admite_escritura);
 
         // Pi "a secas" escribe en OTRO fichero, el que buscan las herramientas que
         // no conocen el home aislado, y su formato es el mismo.
         let pi = c.iter().find(|x| x.id == "pi").unwrap();
-        assert!(pi.config.contains(".pi/agent/models.json"));
+        assert!(
+            pi.config.replace('\\', "/").contains(".pi/agent/models.json"),
+            "{}",
+            pi.config
+        );
         assert!(pi.admite_escritura);
         assert_ne!(pi.config, g.config, "no pueden ser el mismo fichero");
 

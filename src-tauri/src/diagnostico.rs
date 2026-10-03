@@ -349,8 +349,10 @@ mod pruebas {
 
     #[test]
     fn detecta_lo_que_hay_en_esta_maquina() {
-        // Contra el equipo real: aquí hay GPU amdgpu, modelos y clientes, así que
-        // esas comprobaciones no pueden salir como "desconocido".
+        // Antes esta prueba daba por hecho CÓMO ES el equipo del autor (GPU amdgpu,
+        // modelos instalados) y era roja en cualquier otro. Ahora pregunta al
+        // sistema y solo afirma el dato cuando existe: sigue vigilando el equipo
+        // real, pero no exige que lo sea.
         let c = comprobar();
         for x in &c {
             let marca = match x.estado {
@@ -365,16 +367,26 @@ mod pruebas {
             }
         }
         let busca = |id: &str| c.iter().find(|x| x.id == id).unwrap();
-        assert_ne!(
-            busca("mclk").estado,
-            Estado::Desconocido,
-            "esta máquina tiene GPU amdgpu"
-        );
+        // Estas tres NUNCA pueden salir «desconocido»: `comprobar` da un dato, un
+        // aviso o un problema en cualquier sistema, sin rama que las deje sin leer.
         assert_ne!(busca("modelos").estado, Estado::Desconocido);
         assert_ne!(busca("disco").estado, Estado::Desconocido);
         assert_ne!(busca("llama-cpp").estado, Estado::Desconocido);
-        // Y las familias reales tienen que aparecer en el detalle.
-        let m = &busca("modelos").detalle;
-        assert!(m.contains("GB"), "detalle de modelos: {m}");
+        // El reloj de memoria de la GPU solo se puede leer de una GPU AMD en Linux
+        // por sysfs: si la hay, no puede salir «desconocido»; si no la hay,
+        // «desconocido» con su motivo es la respuesta correcta.
+        if crate::plataforma::so() == "linux" && crate::gpu::estado_mclk().is_some() {
+            assert_ne!(
+                busca("mclk").estado,
+                Estado::Desconocido,
+                "hay GPU amdgpu pero mclk sale desconocido"
+            );
+        }
+        // Y el detalle de modelos lleva la cuenta y los GB solo cuando hay modelos:
+        // en un equipo sin ellos el texto es otro (es un aviso, no un fallo).
+        if !crate::inventario::inventario().is_empty() {
+            let m = &busca("modelos").detalle;
+            assert!(m.contains("GB"), "detalle de modelos: {m}");
+        }
     }
 }
