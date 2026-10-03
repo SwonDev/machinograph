@@ -1570,12 +1570,17 @@ mod pruebas {
         assert!(choca("/var/tmpX/x").is_err());
     }
 
+    // Prueba de Unix ENTERA: crear un enlace simbólico en Windows exige
+    // privilegios (o modo desarrollador) y el runner del CI no los tiene, así que
+    // allí el `symlink` falla y no hay nada que comprobar. Se gatea la prueba
+    // completa (no solo la creación del enlace) porque sin enlace el resto no
+    // tiene sentido.
+    #[cfg(unix)]
     #[test]
     fn un_enlace_no_sirve_para_colarse_fuera_del_home() {
         let raiz = std::env::temp_dir().join("machinograph-almacen-enlace");
         let _ = std::fs::remove_dir_all(&raiz);
         std::fs::create_dir_all(&raiz).unwrap();
-        #[cfg(unix)]
         std::os::unix::fs::symlink("/etc", raiz.join("puerta")).unwrap();
         // La ruta es /tmp/... (permitida) pero es un enlace: se rechaza sin resolverlo.
         let e = permitida(&raiz.join("puerta")).unwrap_err();

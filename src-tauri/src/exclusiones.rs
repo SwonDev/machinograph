@@ -260,63 +260,79 @@ pub fn quitar(patron: &str) -> Result<String, String> {
 mod pruebas {
     use super::*;
 
+    /// Una ruta absoluta VÁLIDA en el sistema que corre.
+    ///
+    /// `preparar()` exige que una carpeta sea absoluta (`Path::is_absolute()`), y
+    /// los literales de Unix (`/home/x/VMs`) NO lo son en Windows (allí lo es
+    /// `C:\\...`), así que en Windows `preparar()` las rechazaba. El ayudante pone
+    /// la raíz de cada sistema para que las MISMAS pruebas valgan en Linux, macOS y
+    /// Windows; las barras `/` dan igual porque `normalizar()` unifica los
+    /// separadores antes de comparar.
+    fn abs(p: &str) -> String {
+        if cfg!(windows) {
+            format!("C:/{}", p.trim_start_matches('/'))
+        } else {
+            format!("/{}", p.trim_start_matches('/'))
+        }
+    }
+
     fn v(p: &str) -> Vigente {
         preparar(p).unwrap()
     }
 
     #[test]
     fn una_carpeta_excluida_excluye_lo_de_dentro_pero_no_a_sus_vecinas() {
-        let e = v("/home/x/VMs");
-        assert!(coincide_con("/home/x/VMs", &e, true));
-        assert!(coincide_con("/home/x/VMs/disco.qcow2", &e, true));
-        assert!(coincide_con("/home/x/VMs/a/b/c", &e, true));
+        let e = v(&abs("/home/x/VMs"));
+        assert!(coincide_con(&abs("/home/x/VMs"), &e, true));
+        assert!(coincide_con(&format!("{}/disco.qcow2", abs("/home/x/VMs")), &e, true));
+        assert!(coincide_con(&format!("{}/a/b/c", abs("/home/x/VMs")), &e, true));
         // La frontera es el separador: `VMs2` es OTRA carpeta.
-        assert!(!coincide_con("/home/x/VMs2", &e, true));
-        assert!(!coincide_con("/home/x/VMs2/disco.qcow2", &e, true));
+        assert!(!coincide_con(&abs("/home/x/VMs2"), &e, true));
+        assert!(!coincide_con(&format!("{}/disco.qcow2", abs("/home/x/VMs2")), &e, true));
         // Y la carpeta de arriba no está excluida.
-        assert!(!coincide_con("/home/x", &e, true));
+        assert!(!coincide_con(&abs("/home/x"), &e, true));
     }
 
     #[test]
     fn las_rutas_se_normalizan_antes_de_comparar() {
-        let e = v("/home/x/VMs");
-        assert!(coincide_con("/home/x/./VMs//disco.qcow2", &e, true));
-        assert!(coincide_con("/home/x/otra/../VMs/disco.qcow2", &e, true));
+        let e = v(&abs("/home/x/VMs"));
+        assert!(coincide_con(&format!("{}/./VMs//disco.qcow2", abs("/home/x")), &e, true));
+        assert!(coincide_con(&format!("{}/otra/../VMs/disco.qcow2", abs("/home/x")), &e, true));
         // La barra final no cambia nada.
-        assert!(coincide_con("/home/x/VMs/", &e, true));
+        assert!(coincide_con(&format!("{}/", abs("/home/x/VMs")), &e, true));
         // Y `..` no puede sacar de la exclusión a lo que está dentro.
-        assert!(!coincide_con("/home/x/VMs/../otra.txt", &e, true));
+        assert!(!coincide_con(&format!("{}/../otra.txt", abs("/home/x/VMs")), &e, true));
     }
 
     #[test]
     fn los_comodines_valen_para_el_nombre_y_para_la_ruta() {
         let iso = v("*.iso");
-        assert!(coincide_con("/datos/ubuntu.iso", &iso, true));
-        assert!(coincide_con("/datos/sub/windows.iso", &iso, true));
-        assert!(!coincide_con("/datos/ubuntu.img", &iso, true));
+        assert!(coincide_con(&abs("/datos/ubuntu.iso"), &iso, true));
+        assert!(coincide_con(&abs("/datos/sub/windows.iso"), &iso, true));
+        assert!(!coincide_con(&abs("/datos/ubuntu.img"), &iso, true));
         // Con ruta delante, el glob se prueba contra la ruta entera.
-        let tmp = v("/var/tmp/*");
-        assert!(coincide_con("/var/tmp/algo", &tmp, true));
-        assert!(!coincide_con("/var/tmp", &tmp, true));
+        let tmp = v(&format!("{}/*", abs("/var/tmp")));
+        assert!(coincide_con(&abs("/var/tmp/algo"), &tmp, true));
+        assert!(!coincide_con(&abs("/var/tmp"), &tmp, true));
     }
 
     #[test]
     fn un_nombre_suelto_vale_para_cualquier_componente() {
         let nm = v("node_modules");
-        assert!(coincide_con("/proyectos/a/node_modules", &nm, true));
-        assert!(coincide_con("/proyectos/a/node_modules/x/y.js", &nm, true));
+        assert!(coincide_con(&abs("/proyectos/a/node_modules"), &nm, true));
+        assert!(coincide_con(&abs("/proyectos/a/node_modules/x/y.js"), &nm, true));
         // También si está en medio del camino.
-        assert!(coincide_con("/p/node_modules/a/b", &nm, true));
-        assert!(!coincide_con("/p/nodo_modules/a", &nm, true));
+        assert!(coincide_con(&abs("/p/node_modules/a/b"), &nm, true));
+        assert!(!coincide_con(&abs("/p/nodo_modules/a"), &nm, true));
     }
 
     #[test]
     fn en_windows_y_macos_la_caja_no_cuenta_pero_en_linux_si() {
-        let e = v("/home/x/Informes");
+        let e = v(&abs("/home/x/Informes"));
         // Como en Windows/macOS (sin distinguir caja).
-        assert!(coincide_con("/home/x/informes/2026.txt", &e, false));
+        assert!(coincide_con(&abs("/home/x/informes/2026.txt"), &e, false));
         // Como en Linux.
-        assert!(!coincide_con("/home/x/informes/2026.txt", &e, true));
+        assert!(!coincide_con(&abs("/home/x/informes/2026.txt"), &e, true));
         // Y la función que dice cómo es este sistema concuerda con el `cfg`.
         assert_eq!(sin_distinguir_caja(), cfg!(any(target_os = "windows", target_os = "macos")));
     }
@@ -333,8 +349,9 @@ mod pruebas {
 
     #[test]
     fn la_descripcion_dice_a_que_carpeta_apunta_la_exclusion() {
-        let d = v("/home/x/VMs").descripcion();
-        assert!(d.contains("/home/x/VMs"), "{d}");
+        let ruta = abs("/home/x/VMs");
+        let d = v(&ruta).descripcion();
+        assert!(d.contains(&ruta), "{d}");
         // Un patrón no se resuelve a ninguna carpeta: se enseña tal cual.
         assert_eq!(v("*.iso").descripcion(), "*.iso");
     }
@@ -351,9 +368,10 @@ mod pruebas {
 
     #[test]
     fn gana_la_primera_exclusion_y_se_dice_cual() {
-        let lista = vec![v("*.iso"), v("/home/x/VMs")];
-        let cual = excluida_con("/home/x/VMs/ubuntu.iso", &lista, true).unwrap();
+        let lista = vec![v("*.iso"), v(&abs("/home/x/VMs"))];
+        let cual =
+            excluida_con(&format!("{}/ubuntu.iso", abs("/home/x/VMs")), &lista, true).unwrap();
         assert_eq!(cual.patron, "*.iso");
-        assert!(excluida_con("/home/x/otra.txt", &lista, true).is_none());
+        assert!(excluida_con(&abs("/home/x/otra.txt"), &lista, true).is_none());
     }
 }

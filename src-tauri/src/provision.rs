@@ -1781,6 +1781,19 @@ mod pruebas {
     const FIXTURE_LLAMA: &str = include_str!("../fixtures/llamacpp_release.json");
     const FIXTURE_LLAMA_LISTA: &str = include_str!("../fixtures/llamacpp_releases.json");
 
+    /// Una ruta absoluta VÁLIDA en el sistema que corre.
+    ///
+    /// `validar_destino` exige que la raíz sea absoluta (`Path::is_absolute()`), y
+    /// `/home/alguien/...` NO lo es en Windows (allí lo es `C:\...`). El ayudante
+    /// pone la raíz de cada sistema para que la prueba valga en los tres.
+    fn abs(p: &str) -> String {
+        if cfg!(windows) {
+            format!("C:/{}", p.trim_start_matches('/'))
+        } else {
+            format!("/{}", p.trim_start_matches('/'))
+        }
+    }
+
     /* ── SHA-256 ─────────────────────────────────────────────────────────── */
 
     /// Vectores de la FIPS 180-4, los de manual. Si el algoritmo estuviera mal,
@@ -1940,13 +1953,14 @@ mod pruebas {
     /// NADA se instala fuera de la carpeta de datos del usuario.
     #[test]
     fn una_instalacion_fuera_del_directorio_de_datos_se_rechaza() {
-        let raiz = Path::new("/home/alguien/.local/share/machinograph");
+        let raiz_s = abs("/home/alguien/.local/share/machinograph");
+        let raiz = Path::new(&raiz_s);
         assert!(validar_destino(raiz, &raiz.join("bin").join("llmfit")).is_ok());
         assert!(validar_destino(raiz, &raiz.join("llama").join("b1").join("llama-bench")).is_ok());
         // Fuera de ahí, no.
-        assert!(validar_destino(raiz, Path::new("/usr/local/bin/llmfit")).is_err());
-        assert!(validar_destino(raiz, Path::new("/home/alguien/.local/bin/llmfit")).is_err());
-        assert!(validar_destino(raiz, Path::new("/tmp/llmfit")).is_err());
+        assert!(validar_destino(raiz, Path::new(&abs("/usr/local/bin/llmfit"))).is_err());
+        assert!(validar_destino(raiz, Path::new(&abs("/home/alguien/.local/bin/llmfit"))).is_err());
+        assert!(validar_destino(raiz, Path::new(&abs("/tmp/llmfit"))).is_err());
         // La propia raíz tampoco vale como destino de un fichero.
         assert!(validar_destino(raiz, raiz).is_err());
         // Y una raíz relativa se rechaza siempre: podría acabar en cualquier sitio.

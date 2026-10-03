@@ -590,6 +590,19 @@ fn registrar(comprobaciones: &[ComprobacionSalud]) {
 mod pruebas {
     use super::*;
 
+    /// Una ruta absoluta VÁLIDA en el sistema que corre.
+    ///
+    /// `ruta_del_comando` solo acepta rutas absolutas (`Path::is_absolute()`), y
+    /// `/usr/bin/...` NO lo es en Windows (allí lo es `C:\...`). El ayudante pone
+    /// la raíz de cada sistema para que la misma prueba valga en los tres.
+    fn abs(p: &str) -> String {
+        if cfg!(windows) {
+            format!("C:/{}", p.trim_start_matches('/'))
+        } else {
+            format!("/{}", p.trim_start_matches('/'))
+        }
+    }
+
     fn estado(pedido: bool, activado: bool, comando: Option<&str>) -> EstadoArranque {
         EstadoArranque {
             pedido,
@@ -646,14 +659,15 @@ mod pruebas {
     /// absoluta (una relativa no se puede comprobar desde aquí).
     #[test]
     fn la_ruta_del_comando_se_entiende_con_o_sin_comillas_y_con_argumentos() {
-        assert_eq!(ruta_del_comando("/usr/bin/machinograph"), Some(PathBuf::from("/usr/bin/machinograph")));
+        let exe = abs("/usr/bin/machinograph");
+        assert_eq!(ruta_del_comando(&exe), Some(PathBuf::from(&exe)));
         assert_eq!(
-            ruta_del_comando("  /usr/bin/machinograph --silencioso  "),
-            Some(PathBuf::from("/usr/bin/machinograph"))
+            ruta_del_comando(&format!("  {exe} --silencioso  ")),
+            Some(PathBuf::from(&exe))
         );
         assert_eq!(
-            ruta_del_comando("\"/usr/bin/machinograph\" --silencioso"),
-            Some(PathBuf::from("/usr/bin/machinograph"))
+            ruta_del_comando(&format!("\"{exe}\" --silencioso")),
+            Some(PathBuf::from(&exe))
         );
         assert_eq!(ruta_del_comando("machinograph"), None, "una ruta relativa no vale");
         assert_eq!(ruta_del_comando(""), None);

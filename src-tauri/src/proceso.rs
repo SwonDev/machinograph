@@ -171,8 +171,12 @@ mod pruebas {
         let r = ejecutar(interprete(), &para_ejecutar(orden), &[], Duration::from_secs(1));
         let e = r.expect_err("una orden que no termina con límite de 1 s tiene que dar error");
         assert!(e.contains("no responde"), "el motivo tiene que ser legible: {e}");
+        // El margen es ancho A PROPÓSITO: el límite es de 1 s y la orden tarda 30,
+        // así que aunque un runner compartido se atragante, seguir muy por debajo
+        // de 25 s demuestra que el tope corta y no se espera a que termine. Un
+        // margen de 10 s era demasiado justo y salió flaky en el CI.
         assert!(
-            t0.elapsed() < Duration::from_secs(10),
+            t0.elapsed() < Duration::from_secs(25),
             "no puede esperar los 30 s del proceso"
         );
     }

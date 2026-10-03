@@ -244,11 +244,33 @@ pub fn discos() -> Vec<Disco> {
     v
 }
 
+/// Quita el prefijo `\\?\` que `canonicalize` añade en Windows (y devuelve el
+/// `\\servidor\recurso` de las rutas de red, que llegan como `\\?\UNC\...`).
+///
+/// POR QUÉ: `sysinfo` publica los puntos de montaje como `C:\`, y el camino
+/// canónico empieza por `\\?\C:\`. Sin esto, `canon.starts_with(C:\)` nunca cuadra
+/// y `disco_de` no encontraba ningún disco en Windows. Fuera de Windows es la
+/// identidad (no toca nada).
+fn sin_prefijo_verbatim(p: PathBuf) -> PathBuf {
+    #[cfg(windows)]
+    {
+        if let Some(s) = p.to_str() {
+            if let Some(resto) = s.strip_prefix(r"\\?\UNC\") {
+                return PathBuf::from(format!(r"\\{resto}"));
+            }
+            if let Some(resto) = s.strip_prefix(r"\\?\") {
+                return PathBuf::from(resto);
+            }
+        }
+    }
+    p
+}
+
 /// El disco donde vive una ruta: el punto de montaje **más largo** que sea prefijo
 /// suyo (en un sistema con `/` y `/home` en discos distintos, el bueno es el
 /// segundo).
 pub fn disco_de(ruta: &Path) -> Option<Disco> {
-    let canon = ruta.canonicalize().unwrap_or_else(|_| ruta.to_path_buf());
+    let canon = sin_prefijo_verbatim(ruta.canonicalize().unwrap_or_else(|_| ruta.to_path_buf()));
     discos()
         .into_iter()
         .filter(|d| canon.starts_with(&d.punto))
@@ -571,8 +593,10 @@ mod pruebas {
         let d = disco_de(&home).expect("el home está en algún disco");
         // Se compara contra el camino CANÓNICO: en esta máquina `/home` es un
         // enlace a `/var/home`, y el disco que se enseña es el de la ruta real
-        // (por eso `disco_de` canonicaliza antes de comparar).
-        let real = home.canonicalize().unwrap_or(home.clone());
+        // (por eso `disco_de` canonicaliza antes de comparar). Se quita el prefijo
+        // `\\?\` de Windows igual que hace `disco_de`, o la comparación del test
+        // fallaría aunque el código estuviera bien.
+        let real = sin_prefijo_verbatim(home.canonicalize().unwrap_or(home.clone()));
         assert!(
             real.starts_with(&d.punto),
             "{:?} (real {:?}) no está en {:?}",
