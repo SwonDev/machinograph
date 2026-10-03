@@ -46,7 +46,7 @@ binario release real:
   (temperatura, potencia y VRAM leídas de `sysfs`), disco, `llama-swap` activo con sus modelos y la
   pantalla `DP-1` a 3840×2160@144 Hz leída con `kscreen-doctor`.
 - La ventana **se refresca sola** cada 2 s (los eventos `ai:snapshot` llegan de verdad al frontend).
-- **314 pruebas** de Rust en verde (y 5 de integración marcadas, que necesitan modelos o ficheros reales) y **37 comprobaciones de interfaz** en verde sobre el `dist` real
+- **316 pruebas** de Rust en verde (y 5 de integración marcadas, que necesitan modelos o ficheros reales) y **37 comprobaciones de interfaz** en verde sobre el `dist` real
   (ver *Cómo se comprueba*). El analizador de disco recorre el home real (298 GB, 1,27 M ficheros) en
   ~14 s; el catálogo de limpieza mide **45,4 GB recuperables en 328.934 elementos** y encuentra 5
   huellas de actividad; la revisión de seguridad hace 8 comprobaciones y la de bases SQLite mide las
@@ -145,12 +145,12 @@ instalación local se hace con `assets/instalar.sh`.
 ```bash
 pnpm typecheck                  # tipos del frontend (tsc --noEmit)
 pnpm build                      # build del frontend
-cd src-tauri && cargo test      # 314 pruebas del backend (y 5 de integración marcadas)
+cd src-tauri && cargo test      # 316 pruebas del backend (y 5 de integración marcadas)
 ```
 
 Dos niveles, y los dos hacen falta:
 
-1. **Pruebas de Rust (314, más 5 de integración marcadas con `#[ignore]`).** Cubren los parsers que más fácil se rompen, con salidas **reales**
+1. **Pruebas de Rust (316, más 5 de integración marcadas con `#[ignore]`).** Cubren los parsers que más fácil se rompen, con salidas **reales**
    capturadas de esta máquina: `kscreen-doctor`, `xrandr`, `llama-fit-params`, `llama-bench`, las
    cuatro salidas de `llmfit` (que van como *fixtures* en `src-tauri/fixtures/`) y las de `amd-smi`.
    Son funciones puras justo para eso. Además hay pruebas de las decisiones que no se ven en
